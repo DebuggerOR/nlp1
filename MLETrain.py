@@ -1,5 +1,4 @@
-import sys  # for system arguments
-import itertools
+import sys
 from collections import Counter
 
 input_file_name = sys.argv[1]
@@ -16,7 +15,7 @@ def readInputFile():
         return inputFile.read()
 
 
-def parseFile(File):
+def parseFile(f):
     """
     makes a list of words, tags, and word and tags pairs
     File : input file
@@ -25,15 +24,15 @@ def parseFile(File):
     words = []
     tags = []
     wordsAndTags = []
-    for sentence in File.split('\n')[:-1]:  # add start tag for starting paragraph
+    for sentence in f.split('\n')[:-1]:  # add start tag for starting paragraph
         tags.append('start')
         tags.append('start')
         for pair in sentence.split(' '):
-            word,tag = pair.rsplit("/",1)  # if word contains / will be part of the word
+            word, tag = pair.rsplit("/", 1)  # if word contains / will be part of the word
             words.append(word)
             tags.append(tag)
-            wordsAndTags.append((word,tag))
-    return words,tags,wordsAndTags
+            wordsAndTags.append((word, tag))
+    return words, tags, wordsAndTags
 
 
 def qMLECalc(tags):
@@ -42,22 +41,22 @@ def qMLECalc(tags):
     tags: list of tags
     """
     # count triples, pairs and tags
-    tripletHist = Counter(zip(tags,tags[1:],tags[2:]))
-    pairsHist = Counter(zip(tags,tags[1:]))
+    tripletHist = Counter(zip(tags, tags[1:], tags[2:]))
+    pairsHist = Counter(zip(tags, tags[1:]))
     tagsHist = Counter(tags)
 
     # write MLE to file
-    f = open(q_mle_filename,'w')
+    f = open(q_mle_filename, 'w')
     for tag1 in tagsHist:
-        f.write("%s\t%d\n " % (tag1,tagsHist[tag1]))
+        f.write("%s\t%d\n " % (tag1, tagsHist[tag1]))
         for tag2 in tagsHist:
-            f.write("%s %s\t%d\n " % (tag1,tag2,pairsHist[(tag1,tag2)]))
+            f.write("%s %s\t%d\n " % (tag1, tag2, pairsHist[(tag1, tag2)]))
             for tag3 in tagsHist:
-                f.write("%s %s %s\t%d\n " % (tag1,tag2,tag3,tripletHist[(tag1,tag2,tag3)]))
+                f.write("%s %s %s\t%d\n " % (tag1, tag2, tag3, tripletHist[(tag1, tag2, tag3)]))
     f.close()
 
 
-def eMLECalc(words,tags,wordsAndTags):
+def eMLECalc(words, tags, wordsAndTags):
     """
     Compute e (p(x/y)) MLE and write to e_mle_filename.
     words: list of words
@@ -73,14 +72,14 @@ def eMLECalc(words,tags,wordsAndTags):
             wordsAndTags[idx] = (wordSign(word),tag)
     for idx,word in enumerate(words):
         if (idx > len(words) * 0.8) and (word not in counter):
-            words[idx] = (wordSign(word),tag)
+            words[idx] = (wordSign(word), tag)
 
     # count tags and wordsAndTags and write MLE to file
     wordAndTagsHist = Counter(wordsAndTags)
 
-    f = open(e_mle_filename,'w')
+    f = open(e_mle_filename, 'w')
     for pair in wordAndTagsHist:
-        f.write("%s %s\t%d\n" % (pair[0],pair[1],wordAndTagsHist[pair]))
+        f.write("%s %s\t%d\n" % (pair[0], pair[1], wordAndTagsHist[pair]))
     f.close()
 
 
@@ -114,11 +113,10 @@ def wordSign(word):
         return '*UNK-SHORT*'
     else:
         return '*UNK-LONG*'
-    # return '*UNK*'
 
 
 if __name__ == '__main__':
     File = readInputFile()
-    words,tags,wordsAndTags = parseFile(File)
-    eMLECalc(words,tags,wordsAndTags)
+    words, tags, wordsAndTags = parseFile(File)
+    eMLECalc(words, tags, wordsAndTags)
     qMLECalc(tags)
